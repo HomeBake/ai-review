@@ -9,4 +9,4 @@ RUN apt-get update && \
 RUN git config --global --add safe.directory '*'
 
 ARG AI_REVIEW_VERSION
-RUN pip install --no-cache-dir xai-review-oleg-fork==${AI_REVIEW_VERSION}
+RUN pip install --no-cache-dir xai-review-oleg-fork
