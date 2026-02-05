@@ -38,8 +38,8 @@ jobs:
           LLM__META__MODEL: "qwen3-coder:30b"
           LLM__META__TEMPERATURE: "0.1"
           LLM__HTTP_CLIENT__API_URL: "https://aurore-monogenic-nonarticulately.ngrok-free.dev"
-          
-          VCS__HTTP_CLIENT__API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          VCS__HTTP_CLIENT__API_TOKEN: ${{ secrets.T_GITHUB_TOKEN }}
 
           VCS__PIPELINE__OWNER: ${{ github.repository_owner }}
           VCS__PIPELINE__REPO: ${{ github.event.repository.name }}
