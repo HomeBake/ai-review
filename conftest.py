@@ -35,6 +35,7 @@ pytest_plugins = (
     "ai_review.tests.fixtures.clients.azure_devops",
     "ai_review.tests.fixtures.clients.bitbucket_cloud",
     "ai_review.tests.fixtures.clients.bitbucket_server",
+    "ai_review.tests.fixtures.clients.litelmm",
 
     "ai_review.tests.fixtures.libs.llm.output_json_parser"
 )

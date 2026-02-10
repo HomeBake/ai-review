@@ -4,7 +4,7 @@
 
 llm:
   # Provider for the Large Language Model.
-  # Options: OPENAI | GEMINI | CLAUDE | OLLAMA | BEDROCK | OPENROUTER | AZURE_OPENAI
+  # Options: OPENAI | GEMINI | CLAUDE | OLLAMA | BEDROCK | OPENROUTER | AZURE_OPENAI | LITELLM
   provider: OPENAI
 
   # Path to the pricing file used for cost estimation.
@@ -48,6 +48,11 @@ llm:
     # max_tokens: 1200
     # temperature: 0.3
     # title: "AI Review"                   # (optional) project title for analytics
+
+    # --- LiteLLM ---
+    # model: gpt-4o-mini  # e.g., gpt-4o, gpt-4o-mini, claude-3-sonnet, llama2 (any model supported by LiteLLM)
+    # max_tokens: 1200
+    # temperature: 0.3
     # referer: "https://your-domain.com"   # (optional) referer URL for analytics
 
     # --- Azure OpenAI ---

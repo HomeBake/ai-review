@@ -8,6 +8,7 @@ from ai_review.services.llm.gemini.client import GeminiLLMClient
 from ai_review.services.llm.ollama.client import OllamaLLMClient
 from ai_review.services.llm.openai.client import OpenAILLMClient
 from ai_review.services.llm.openrouter.client import OpenRouterLLMClient
+from ai_review.services.llm.litelmm.client import LiteLLMLLMClient
 
 
 @pytest.mark.usefixtures("openai_v1_http_client_config")
@@ -50,6 +51,12 @@ def test_get_llm_client_returns_openrouter(monkeypatch: pytest.MonkeyPatch):
 def test_get_llm_client_returns_azure_openai(monkeypatch: pytest.MonkeyPatch):
     client = get_llm_client()
     assert isinstance(client, AzureOpenAILLMClient)
+
+
+@pytest.mark.usefixtures("litelmm_http_client_config")
+def test_get_llm_client_returns_litelmm(monkeypatch: pytest.MonkeyPatch):
+    client = get_llm_client()
+    assert isinstance(client, LiteLLMLLMClient)
 
 
 def test_get_llm_client_unsupported_provider(monkeypatch: pytest.MonkeyPatch):

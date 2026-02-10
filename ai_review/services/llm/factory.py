@@ -7,6 +7,7 @@ from ai_review.services.llm.gemini.client import GeminiLLMClient
 from ai_review.services.llm.ollama.client import OllamaLLMClient
 from ai_review.services.llm.openai.client import OpenAILLMClient
 from ai_review.services.llm.openrouter.client import OpenRouterLLMClient
+from ai_review.services.llm.litelmm.client import LiteLLMLLMClient
 from ai_review.services.llm.types import LLMClientProtocol
 
 
@@ -26,5 +27,7 @@ def get_llm_client() -> LLMClientProtocol:
             return OpenRouterLLMClient()
         case LLMProvider.AZURE_OPENAI:
             return AzureOpenAILLMClient()
+        case LLMProvider.LITELLM:
+            return LiteLLMLLMClient()
         case _:
             raise ValueError(f"Unsupported LLM provider: {settings.llm.provider}")
