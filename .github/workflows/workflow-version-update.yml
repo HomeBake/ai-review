@@ -1,0 +1,99 @@
+name: 🚀 Version Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-type:
+        description: 'Version type to update'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'patch'
+
+jobs:
+  update-version:
+    name: 🔖 Update Version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Get current version
+        id: get-current-version
+        run: |
+          CURRENT_VERSION=$(grep -E 'version\s*=' pyproject.toml | sed -E 's/version\s*=\s*"([^"]+)"/\1/')
+          echo "Current version: $CURRENT_VERSION"
+          echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: calculate-version
+        run: |
+          CURRENT_VERSION=${{ steps.get-current-version.outputs.current-version }}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          case ${{ inputs.version-type }} in
+            major)
+              NEW_MAJOR=$((MAJOR + 1))
+              NEW_MINOR=0
+              NEW_PATCH=0
+              ;;
+            minor)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$((MINOR + 1))
+              NEW_PATCH=0
+              ;;
+            patch)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in files
+        id: update-files
+        run: |
+          NEW_VERSION=${{ steps.calculate-version.outputs.new-version }}
+          
+          # Update pyproject.toml
+          sed -i "s/version\s*=\s*\"[^\"]*\"/version = \"$NEW_VERSION\"/g" pyproject.toml
+          
+          # Update action.yml
+          sed -i "s/xai-review-oleg-fork==[0-9]*\.[0-9]*\.[0-9]*/xai-review-oleg-fork==$NEW_VERSION/g" action.yml
+          
+          # Update reusable-review-marketplace.yml
+          sed -i "s/HomeBake\/ai-review@v[0-9]*\.[0-9]*\.[0-9]*/HomeBake\/ai-review@v$NEW_VERSION/g" .github/workflows/reusable-review-marketplace.yml
+          
+          # Update ai_review/__init__.py
+          echo "__version__ = \"$NEW_VERSION\"" > ai_review/__init__.py
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml action.yml .github/workflows/reusable-review-marketplace.yml ai_review/__init__.py
+          git commit -m "🔖 Bump version to v${{ steps.calculate-version.outputs.new-version }}"
+
+      - name: Create git tag
+        run: |
+          git tag -a "v${{ steps.calculate-version.outputs.new-version }}" -m "Version ${{ steps.calculate-version.outputs.new-version }}"
+
+      - name: Push changes and tag
+        run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push --follow-tags
