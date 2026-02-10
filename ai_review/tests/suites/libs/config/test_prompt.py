@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import responses
 
 from ai_review.libs.config.prompt import PromptConfig, resolve_prompt_files, resolve_system_prompt_files
 
@@ -135,3 +136,54 @@ def test_load_system_summary_reply_prompts(monkeypatch: pytest.MonkeyPatch, tmp_
     config = PromptConfig()
     assert config.system_summary_reply_prompt_files_or_default == [dummy_file]
     assert config.load_system_summary_reply() == ["SYS_SR"]
+
+
+@responses.activate
+def test_load_prompt_from_url():
+    test_url = "https://example.com/test_prompt.md"
+    test_content = "This is a test prompt from URL"
+    responses.add(responses.GET, test_url, body=test_content, status=200)
+
+    config = PromptConfig(inline_prompt_files=[test_url])
+    prompts = config.load_inline()
+
+    assert len(prompts) == 1
+    assert prompts[0] == test_content
+
+
+@responses.activate
+def test_load_system_prompt_from_url():
+    test_url = "https://example.com/test_system_prompt.md"
+    test_content = "This is a test system prompt from URL"
+    responses.add(responses.GET, test_url, body=test_content, status=200)
+
+    config = PromptConfig(system_inline_prompt_files=[test_url], include_inline_system_prompts=False)
+    prompts = config.load_system_inline()
+
+    assert len(prompts) == 1
+    assert prompts[0] == test_content
+
+
+@responses.activate
+def test_load_prompts_from_both_file_and_url(tmp_path: Path):
+    dummy_file = tmp_path / "local_prompt.md"
+    dummy_file.write_text("LOCAL_PROMPT")
+
+    test_url = "https://example.com/test_prompt.md"
+    test_content = "URL_PROMPT"
+    responses.add(responses.GET, test_url, body=test_content, status=200)
+
+    config = PromptConfig(inline_prompt_files=[dummy_file, test_url])
+    prompts = config.load_inline()
+
+    assert len(prompts) == 2
+    assert prompts[0] == "LOCAL_PROMPT"
+    assert prompts[1] == "URL_PROMPT"
+
+
+def test_load_prompt_invalid_url():
+    invalid_url = "invalid://example.com"
+    config = PromptConfig(inline_prompt_files=[invalid_url])
+
+    with pytest.raises(ValueError):
+        config.load_inline()

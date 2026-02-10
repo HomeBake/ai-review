@@ -52,7 +52,8 @@ dependencies = [
     "loguru",
     "aiofiles",
     "pydantic",
-    "pydantic-settings"
+    "pydantic-settings",
+    "requests"
 ]
 requires-python = ">=3.11"
 

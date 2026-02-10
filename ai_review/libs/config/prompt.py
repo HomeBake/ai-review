@@ -1,12 +1,16 @@
 from functools import cached_property
 from pathlib import Path
+from typing import Union
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, FilePath, Field
+import requests
+
+from pydantic import BaseModel, Field, AnyUrl, FilePath
 
 from ai_review.libs.resources import load_resource
 
 
-def resolve_prompt_files(files: list[FilePath] | None, default_file: str) -> list[Path]:
+def resolve_prompt_files(files: list[Union[FilePath, AnyUrl]] | None, default_file: str) -> list[Union[Path, AnyUrl]]:
     return files or [
         load_resource(
             package="ai_review.prompts",
@@ -16,7 +20,7 @@ def resolve_prompt_files(files: list[FilePath] | None, default_file: str) -> lis
     ]
 
 
-def resolve_system_prompt_files(files: list[FilePath] | None, include: bool, default_file: str) -> list[Path]:
+def resolve_system_prompt_files(files: list[Union[FilePath, AnyUrl]] | None, include: bool, default_file: str) -> list[Union[Path, AnyUrl]]:
     global_files = [
         load_resource(
             package="ai_review.prompts",
@@ -40,18 +44,18 @@ class PromptConfig(BaseModel):
     context_placeholder: str = "<<{value}>>"
 
     # --- Prompts ---
-    inline_prompt_files: list[FilePath] | None = None
-    context_prompt_files: list[FilePath] | None = None
-    summary_prompt_files: list[FilePath] | None = None
-    inline_reply_prompt_files: list[FilePath] | None = None
-    summary_reply_prompt_files: list[FilePath] | None = None
+    inline_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    context_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    summary_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    inline_reply_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    summary_reply_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
 
     # --- System Prompts ---
-    system_inline_prompt_files: list[FilePath] | None = None
-    system_context_prompt_files: list[FilePath] | None = None
-    system_summary_prompt_files: list[FilePath] | None = None
-    system_inline_reply_prompt_files: list[FilePath] | None = None
-    system_summary_reply_prompt_files: list[FilePath] | None = None
+    system_inline_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    system_context_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    system_summary_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    system_inline_reply_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
+    system_summary_reply_prompt_files: list[Union[FilePath, AnyUrl]] | None = None
 
     # --- Include System Prompts ---
     include_inline_system_prompts: bool = True
@@ -122,34 +126,45 @@ class PromptConfig(BaseModel):
             default_file="default_system_summary_reply.md"
         )
 
+    def _load_prompt_content(self, source: Union[Path, AnyUrl]) -> str:
+        """Load prompt content from a local file or URL."""
+        if isinstance(source, Path):
+            return source.read_text(encoding="utf-8")
+        elif source.scheme in ("http", "https"):
+            response = requests.get(str(source))
+            response.raise_for_status()  # Raise an error for bad status codes
+            return response.text
+        else:
+            raise ValueError(f"Unsupported prompt source type: {type(source)} or scheme: {source.scheme}")
+
     # --- Load Prompts ---
     def load_inline(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.inline_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.inline_prompt_files_or_default]
 
     def load_context(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.context_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.context_prompt_files_or_default]
 
     def load_summary(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.summary_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.summary_prompt_files_or_default]
 
     def load_inline_reply(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.inline_reply_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.inline_reply_prompt_files_or_default]
 
     def load_summary_reply(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.summary_reply_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.summary_reply_prompt_files_or_default]
 
     # --- Load System Prompts ---
     def load_system_inline(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.system_inline_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.system_inline_prompt_files_or_default]
 
     def load_system_context(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.system_context_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.system_context_prompt_files_or_default]
 
     def load_system_summary(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.system_summary_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.system_summary_prompt_files_or_default]
 
     def load_system_inline_reply(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.system_inline_reply_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.system_inline_reply_prompt_files_or_default]
 
     def load_system_summary_reply(self) -> list[str]:
-        return [file.read_text(encoding="utf-8") for file in self.system_summary_reply_prompt_files_or_default]
+        return [self._load_prompt_content(source) for source in self.system_summary_reply_prompt_files_or_default]
