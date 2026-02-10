@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run AI Review
-        uses: HomeBake/ai-review@v1.1.5
+        uses: HomeBake/ai-review@v1.1.6
         env:
           AI_REVIEW_CONFIG_FILE_YAML: ./ci/review/config.yaml
 
