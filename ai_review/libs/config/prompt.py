@@ -1,7 +1,6 @@
 from functools import cached_property
 from pathlib import Path
 from typing import Union
-from urllib.parse import urlparse
 
 import requests
 
