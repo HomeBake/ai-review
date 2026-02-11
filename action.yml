@@ -20,7 +20,7 @@ runs:
         python-version: '3.12'
 
     - name: Install XAI Review
-      run: pip install --no-cache-dir xai-review-oleg-fork==1.2.1
+      run: pip install --no-cache-dir xai-review-oleg-fork==1.2.2
       shell: bash
 
     - name: Run AI Review
