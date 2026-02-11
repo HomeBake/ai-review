@@ -177,7 +177,15 @@ on:
       review-command:
         type: choice
         default: run
-        options: [ run, run-inline, run-context, run-summary, run-inline-reply, run-summary-reply ]
+        options:
+          - run
+          - run-inline
+          - run-context
+          - run-summary
+          - run-inline-reply
+          - run-summary-reply
+          - clear-inline
+          - clear-summary
       pull-request-number:
         type: string
         required: true
@@ -185,11 +193,11 @@ jobs:
   ai-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: Nikita-Filonov/ai-review@v0.51.0
+      - uses: Nikita-Filonov/ai-review@v0.56.0
         with:
           review-command: ${{ inputs.review-command }}
         env:
