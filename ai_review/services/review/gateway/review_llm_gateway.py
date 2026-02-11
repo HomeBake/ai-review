@@ -21,8 +21,11 @@ class ReviewLLMGateway(ReviewLLMGatewayProtocol):
 
     async def ask(self, prompt: str, prompt_system: str) -> str:
         try:
+            logger.debug(f"LLM Prompt System: {prompt_system}")
+            logger.debug(f"LLM Prompt: {prompt}")
             await hook.emit_chat_start(prompt, prompt_system)
             result = await self.llm.chat(prompt, prompt_system)
+            logger.debug(f"LLM Response: {result.text}")
             if not result.text:
                 logger.warning(
                     f"LLM returned an empty response (prompt length={len(prompt)} chars)"
