@@ -12,3 +12,4 @@ Guidelines:
 - If there are many issues, prioritize the most important ones (maximum 50 comments).
 - Keep comments short, actionable, and relevant.
 - Do not comment on unchanged code or stylistic preferences unless they clearly affect maintainability.
+- Отвечай только на русском.
