@@ -5,3 +5,4 @@ class LLMMetaConfig(BaseModel):
     model: str
     max_tokens: int | None = Field(default=None, ge=1)
     temperature: float | None = Field(default=None, ge=0.0, le=2.0)
+    max_prompt_tokens: int | None = Field(default=None, ge=1)

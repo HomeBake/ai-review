@@ -1,3 +1,4 @@
+from ai_review.config import settings
 from ai_review.libs.logger import get_logger
 from ai_review.services.cost.types import CostServiceProtocol
 from ai_review.services.diff.types import DiffServiceProtocol
@@ -62,7 +63,37 @@ class SummaryReviewRunner(ReviewRunnerProtocol):
         prompt_context = build_prompt_context_from_review_info(review_info)
         prompt = self.prompt.build_summary_request(rendered_files, prompt_context)
         prompt_system = self.prompt.build_system_summary_request(prompt_context)
-        prompt_result = await self.review_llm_gateway.ask(prompt, prompt_system)
+
+        # Handle large prompt by chunking if needed
+        max_tokens = settings.llm.meta.max_prompt_tokens
+        if max_tokens:
+            from ai_review.libs.llm.tokenizer import count_tokens
+            total_tokens = count_tokens(prompt) + count_tokens(prompt_system)
+            
+            if total_tokens > max_tokens:
+                logger.warning(
+                    f"Prompt exceeds maximum token limit: {total_tokens} > {max_tokens}, "
+                    "will split into chunks"
+                )
+                
+                # Split prompt into chunks
+                chunks = self.prompt.split_prompt(prompt, max_tokens, prompt_system)
+                logger.info(f"Split prompt into {len(chunks)} chunks")
+                
+                # Process each chunk separately
+                all_results = []
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"Processing chunk {i+1}/{len(chunks)}")
+                    chunk_result = await self.review_llm_gateway.ask(chunk, prompt_system)
+                    if chunk_result:
+                        all_results.append(chunk_result)
+                
+                # Combine results
+                prompt_result = "\n".join(all_results)
+            else:
+                prompt_result = await self.review_llm_gateway.ask(prompt, prompt_system)
+        else:
+            prompt_result = await self.review_llm_gateway.ask(prompt, prompt_system)
 
         summary = self.summary_comment.parse_model_output(prompt_result)
         if not summary.text.strip():
