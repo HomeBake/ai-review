@@ -12,4 +12,3 @@ Guidelines:
   provide a clear recommendation or short illustrative code snippet.
 - Avoid greetings, acknowledgements, or repeating earlier feedback.
 - If no reply is needed, write exactly: `No reply`.
-- Отвечай только на русском.

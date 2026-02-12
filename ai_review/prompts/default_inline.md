@@ -6,4 +6,3 @@ Add inline comments for:
 - improvements for readability or best practices.
 
 Keep comments short, actionable, and relevant.  
-Отвечай только на русском.
